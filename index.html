@@ -55,9 +55,9 @@
       </nav>
       <nav id="sub-nav">
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
       </nav>
       <div id="search-form-wrap">
         <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
@@ -67,76 +67,6 @@
 </header>
       <div class="outer">
         <section id="main">
-  
-    <article id="post-setValueForKey" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/17/setValueForKey/" class="article-date">
-  <time datetime="2017-10-17T04:09:26.000Z" itemprop="datePublished">2017-10-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/17/setValueForKey/">setValueForKey</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="关于NSObject的setValue-forKey的一个小tip"><a href="#关于NSObject的setValue-forKey的一个小tip" class="headerlink" title="关于NSObject的setValue forKey的一个小tip"></a>关于NSObject的setValue forKey的一个小tip</h2><p>这两天重构项目的认证接口，接口的大概功能是，要根据每个字段的值去判断<br>每个认证的状态，接口的返回值大概是这样的。。。。。。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">code = 0;</div><div class="line">data =     &#123;</div><div class="line">button = 1;</div><div class="line">contact = 1;</div><div class="line">credential = 0;</div><div class="line">&quot;credit_indicator&quot; = 243;</div><div class="line">housingfund = 0;</div><div class="line">idcard = 1;</div><div class="line">information = 0;</div><div class="line">isp = 0;</div><div class="line">jingdong = 0;</div><div class="line">&quot;loan_history&quot; = 0;</div><div class="line">report = 0;</div><div class="line">taobao = 0;</div><div class="line">time = &quot;2017-08-01T11:18:52.000+08:00&quot;;</div><div class="line">zhima = 1;</div><div class="line">&quot;zhima_certifications&quot; = 1;</div><div class="line">&#125;;</div><div class="line">&quot;reset_data&quot; =     (</div><div class="line">);</div><div class="line">&quot;update_prompt&quot; =     (</div><div class="line">&#123;</div><div class="line">identity = 0;</div><div class="line">&#125;,</div><div class="line">&#123;</div><div class="line">contact = 1;</div><div class="line">&#125;</div><div class="line">);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>我来解释一下这个返回数据，data里的0和1的那些字段每个对应一个认证，1表示已认证，0为未认证。<br>reset_data和update_prompt都是数组，数组里的元素一个字典，字典里的字段对应一个认证。<br>reset_data里的字典如果包含某个字段，则该认证状态为已过期。<br>update_prompt里的字典如果包含某个字段，并且值为1，则该认证状态为可更新，例如contact，否则为已更新，例如identity</p>
-<p>这个逻辑是不是很奇葩。。。其实完全可以用”字段”=1或者2、3这样表示<br>每个认证的状态，例如：1未认证2已认证3已过期4可更新5已更新<br>（别问我接口后台谁写的，我也很绝望啊）</p>
-<h4 id="以前写的数据的解析是这样的。。。"><a href="#以前写的数据的解析是这样的。。。" class="headerlink" title="以前写的数据的解析是这样的。。。"></a>以前写的数据的解析是这样的。。。</h4><figure class="highlight plain"><figcaption><span>(dict[@"carrier"]) &#123;</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">if ([dict[@&quot;carrier&quot;] intValue] == 1) &#123;</div><div class="line">[defaults setObject:@&quot;3&quot; forKey:@&quot;SERVICEShine&quot;];</div><div class="line">&#125;else&#123;</div><div class="line">[defaults setObject:@&quot;4&quot; forKey:@&quot;SERVICEShine&quot;];</div><div class="line">&#125;</div><div class="line">&#125;else if (dict[@&quot;taobao&quot;]) &#123;</div><div class="line">if ([dict[@&quot;taobao&quot;] intValue] == 1) &#123;</div><div class="line">[defaults setObject:@&quot;3&quot; forKey:@&quot;TBShine&quot;];</div><div class="line">&#125;else&#123;</div><div class="line">[defaults setObject:@&quot;4&quot; forKey:@&quot;TBShine&quot;];</div><div class="line">&#125;</div><div class="line">&#125;</div><div class="line">....此处省略无数个if else</div></pre></td></tr></table></figure>
-<p>单单一个数据解析写了近200行，然后还在多处地方用到。。。对于有技术追求的我们，怎么能这么干呢？</p>
-<p>果断重构之，方案如下：</p>
-<h4 id="新建一个model类，创建一个枚举类型，表示认证的每种状态"><a href="#新建一个model类，创建一个枚举类型，表示认证的每种状态" class="headerlink" title="新建一个model类，创建一个枚举类型，表示认证的每种状态"></a>新建一个model类，创建一个枚举类型，表示认证的每种状态</h4><figure class="highlight plain"><figcaption><span>NAAuthenticationState) &#123;</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">NAAuthenticationStateNot =0,// 未认证</div><div class="line"></div><div class="line">NAAuthenticationStateAlready,// 已认证</div><div class="line"></div><div class="line">NAAuthenticationStateOverdue,// 已过期</div><div class="line"></div><div class="line">NAAuthenticationStateCanUpdate,// 可更新</div><div class="line"></div><div class="line">NAAuthenticationStateAlreadyUpdate// 已更新</div><div class="line"></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<h4 id="添加data中的每个key作为属性，此类有3个方法："><a href="#添加data中的每个key作为属性，此类有3个方法：" class="headerlink" title="添加data中的每个key作为属性，此类有3个方法："></a>添加data中的每个key作为属性，此类有3个方法：</h4><ul>
-<li><p>单例<code>+ (instancetype)sharedModel;</code></p>
-</li>
-<li><p>获取所有属性名<code>+ (NSArray*)getAllProperties;</code></p>
-</li>
-<li>然后是解析方法<code>+ (void)analysisAuthentication:(NSDictionary*)returnValue;</code><br>解析方法的实现具体也分3步，因为坑爹的返回数据格式。</li>
-</ul>
-<p>返回数据分三部分，为了方便理解，我们命名为dataDic、resetArr、updateArr，数据类型应该一目了然吧。</p>
-<ol>
-<li>首先利用第三方库<code>YYModel</code>对dataDic字典里的数据进行model转换</li>
-</ol>
-<p><code>[model yy_modelSetWithJSON:dataDic];</code><br>这里刚好0代表未认证，1代表已认证，所以这一句就够了。</p>
-<ol>
-<li>然后遍历数组resetArr，再遍历里面的字典进行赋值，由于这里的数据value还都是0，我们需要的值是<code>NAAuthenticationStateOverdue</code>，也即是2，而且有个别key居然跟上一步的命名不一样。。。所以不能直接用yymodel赋值了。<br>我们选择在遍历字典时，先把不一样的key单独找出来赋值成<code>NAAuthenticationStateOverdue</code>，然后其他的利用setValueforKey进行赋值</li>
-</ol>
-<p><strong>重点来了</strong></p>
-<p><strong>setValueforKey的value必须为id类型，而我们的属性是枚举类型，也即是NSInteger，这样用会报错，怎么办呢？</strong></p>
-<p><code>id propertyValue = [[[NSNumberFormatter alloc] init] numberFromString:@&quot;2&quot;];</code><br><strong>这样我们再用setValueforKey就没问题了，完美～</strong></p>
-<ol>
-<li>跟第二步类似</li>
-</ol>
-<hr>
-<p>到此解析完成，这样我们就算是在很多地方用到，只需要引入此model，调用解析方法即可，简洁美观～</p>
-<hr>
-<p>哦，对了还有一点，至于为什么不像旧的那样，用<code>NSUserDefaults</code>保存本地，我认为是没有必要的。</p>
-<p>因为这些数据在用到的时候，都会提前请求更新一下，本地保存完全没有意义，故用单例保存足以。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/17/setValueForKey/" data-id="cj8vc4gz9000176h30vtnp180" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
   
     <article id="post-My-New-Post" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -164,7 +94,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/12/My-New-Post/" data-id="cj8vc4gz3000076h3pke35zkv" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/12/My-New-Post/" data-id="cj8vdk5z80001l5h3h70xq607" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -209,7 +139,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/08/hello-world/" data-id="cj8vc4gzn000276h3uwv14wnl" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/08/hello-world/" data-id="cj8vdk5z00000l5h3wlzqy2on" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -236,7 +166,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -244,13 +174,9 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">Articles récents</h3>
     <div class="widget">
       <ul>
-        
-          <li>
-            <a href="/2017/10/17/setValueForKey/">setValueForKey</a>
-          </li>
         
           <li>
             <a href="/2017/09/12/My-New-Post/">My New Post</a>
@@ -273,7 +199,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       &copy; 2017 YK<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
 </footer>
